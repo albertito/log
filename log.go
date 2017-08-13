@@ -59,10 +59,10 @@ var levelToLetter = map[Level]string{
 
 // A Logger represents a logging object that writes logs to the given writer.
 type Logger struct {
-	Level   Level
-	LogTime bool
+	level   Level
+	logTime bool
 
-	CallerSkip int
+	callerSkip int
 
 	w io.WriteCloser
 	sync.Mutex
@@ -71,9 +71,9 @@ type Logger struct {
 func New(w io.WriteCloser) *Logger {
 	return &Logger{
 		w:          w,
-		CallerSkip: 0,
-		Level:      Info,
-		LogTime:    true,
+		callerSkip: 0,
+		level:      Info,
+		logTime:    true,
 	}
 }
 
@@ -84,7 +84,7 @@ func NewFile(path string) (*Logger, error) {
 	}
 
 	l := New(f)
-	l.LogTime = true
+	l.logTime = true
 	return l, nil
 }
 
@@ -95,7 +95,7 @@ func NewSyslog(priority syslog.Priority, tag string) (*Logger, error) {
 	}
 
 	l := New(w)
-	l.LogTime = false
+	l.logTime = false
 	return l, nil
 }
 
@@ -104,7 +104,7 @@ func (l *Logger) Close() {
 }
 
 func (l *Logger) V(level Level) bool {
-	return level <= l.Level
+	return level <= l.level
 }
 
 func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) {
@@ -116,7 +116,7 @@ func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
 
 	// Caller.
-	_, file, line, ok := runtime.Caller(1 + l.CallerSkip + skip)
+	_, file, line, ok := runtime.Caller(1 + l.callerSkip + skip)
 	if !ok {
 		file = "unknown"
 	}
@@ -134,7 +134,7 @@ func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) {
 	msg = letter + " " + msg
 
 	// Time.
-	if l.LogTime {
+	if l.logTime {
 		msg = time.Now().Format("20060102 15:04:05.000000 ") + msg
 	}
 
@@ -169,9 +169,9 @@ func (l *Logger) Fatalf(format string, a ...interface{}) {
 // The default logger, used by the top-level functions below.
 var Default = &Logger{
 	w:          os.Stderr,
-	CallerSkip: 1,
-	Level:      Info,
-	LogTime:    false,
+	callerSkip: 1,
+	level:      Info,
+	logTime:    false,
 }
 
 // Init the default logger, based on the command-line flags.
@@ -196,9 +196,9 @@ func Init() {
 		Default.w = multiWriteCloser(Default.w, os.Stderr)
 	}
 
-	Default.CallerSkip = 1
-	Default.Level = Level(*vLevel)
-	Default.LogTime = *logTime
+	Default.callerSkip = 1
+	Default.level = Level(*vLevel)
+	Default.logTime = *logTime
 }
 
 func V(level Level) bool {

@@ -35,7 +35,7 @@ func checkContentsMatch(t *testing.T, name, path, expected string) {
 }
 
 func testLogger(t *testing.T, fname string, l *Logger) {
-	l.LogTime = false
+	l.logTime = false
 	l.Infof("message %d", 1)
 	checkContentsMatch(t, "info-no-time", fname,
 		"^_ log_test.go:....   message 1\n")
@@ -46,43 +46,43 @@ func testLogger(t *testing.T, fname string, l *Logger) {
 		"^_ log_test.go:....   message 1\n")
 
 	os.Truncate(fname, 0)
-	l.LogTime = true
+	l.logTime = true
 	l.Infof("message %d", 1)
 	checkContentsMatch(t, "info-with-time", fname,
 		`^\d{8} ..:..:..\.\d{6} _ log_test.go:....   message 1\n`)
 
 	os.Truncate(fname, 0)
-	l.LogTime = false
+	l.logTime = false
 	l.Errorf("error %d", 1)
 	checkContentsMatch(t, "error", fname, `^E log_test.go:....   error 1\n`)
 
 	if l.V(Debug) {
-		t.Fatalf("Debug level enabled by default (level: %v)", l.Level)
+		t.Fatalf("Debug level enabled by default (level: %v)", l.level)
 	}
 
 	os.Truncate(fname, 0)
-	l.LogTime = false
+	l.logTime = false
 	l.Debugf("debug %d", 1)
 	checkContentsMatch(t, "debug-no-log", fname, `^$`)
 
 	os.Truncate(fname, 0)
-	l.Level = Debug
+	l.level = Debug
 	l.Debugf("debug %d", 1)
 	checkContentsMatch(t, "debug", fname, `^\. log_test.go:....   debug 1\n`)
 
 	if !l.V(Debug) {
-		t.Errorf("l.Level = Debug, but V(Debug) = false")
+		t.Errorf("l.level = Debug, but V(Debug) = false")
 	}
 
 	os.Truncate(fname, 0)
-	l.Level = Info
+	l.level = Info
 	l.Log(Debug, 0, "log debug %d", 1)
 	l.Log(Info, 0, "log info %d", 1)
 	checkContentsMatch(t, "log", fname,
 		`^_ log_test.go:....   log info 1\n`)
 
 	os.Truncate(fname, 0)
-	l.Level = Info
+	l.level = Info
 	l.Log(Fatal, 0, "log fatal %d", 1)
 	checkContentsMatch(t, "log", fname,
 		`^☠ log_test.go:....   log fatal 1\n`)
