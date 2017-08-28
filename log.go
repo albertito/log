@@ -73,12 +73,17 @@ var levelToLetter = map[Level]string{
 
 // A Logger represents a logging object that writes logs to a writer.
 type Logger struct {
-	level   Level
-	logTime bool
+	// Minimum level to log. Messages below this level will be dropped.
+	// Note this field is NOT thread safe, if you change it, it is strongly
+	// recommended to do so right after creating the logger, and before it is
+	// used.
+	// The use of this field should be considered EXPERIMENTAL, the API for it
+	// could change in the future.
+	Level Level
 
+	logTime    bool
 	callerSkip int
-
-	w io.WriteCloser
+	w          io.WriteCloser
 	sync.Mutex
 }
 
@@ -87,7 +92,7 @@ func New(w io.WriteCloser) *Logger {
 	return &Logger{
 		w:          w,
 		callerSkip: 0,
-		level:      Info,
+		Level:      Info,
 		logTime:    true,
 	}
 }
@@ -126,7 +131,7 @@ func (l *Logger) Close() {
 // It can be used to decide whether to use or gather debugging information
 // only at a certain level, to avoid computing it needlessly.
 func (l *Logger) V(level Level) bool {
-	return level <= l.level
+	return level <= l.Level
 }
 
 // Log the message into the logger, at the given level. This is low-level and
@@ -202,7 +207,7 @@ func (l *Logger) Fatalf(format string, a ...interface{}) {
 var Default = &Logger{
 	w:          os.Stderr,
 	callerSkip: 1,
-	level:      Info,
+	Level:      Info,
 	logTime:    false,
 }
 
@@ -229,7 +234,7 @@ func Init() {
 	}
 
 	Default.callerSkip = 1
-	Default.level = Level(*vLevel)
+	Default.Level = Level(*vLevel)
 	Default.logTime = *logTime
 }
 
