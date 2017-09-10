@@ -57,7 +57,7 @@ func testLogger(t *testing.T, fname string, l *Logger) {
 	checkContentsMatch(t, "error", fname, `^E log_test.go:....   error 1\n`)
 
 	if l.V(Debug) {
-		t.Fatalf("Debug level enabled by default (level: %v)", l.level)
+		t.Fatalf("Debug level enabled by default (level: %v)", l.Level)
 	}
 
 	os.Truncate(fname, 0)
@@ -66,23 +66,23 @@ func testLogger(t *testing.T, fname string, l *Logger) {
 	checkContentsMatch(t, "debug-no-log", fname, `^$`)
 
 	os.Truncate(fname, 0)
-	l.level = Debug
+	l.Level = Debug
 	l.Debugf("debug %d", 1)
 	checkContentsMatch(t, "debug", fname, `^\. log_test.go:....   debug 1\n`)
 
 	if !l.V(Debug) {
-		t.Errorf("l.level = Debug, but V(Debug) = false")
+		t.Errorf("l.Level = Debug, but V(Debug) = false")
 	}
 
 	os.Truncate(fname, 0)
-	l.level = Info
+	l.Level = Info
 	l.Log(Debug, 0, "log debug %d", 1)
 	l.Log(Info, 0, "log info %d", 1)
 	checkContentsMatch(t, "log", fname,
 		`^_ log_test.go:....   log info 1\n`)
 
 	os.Truncate(fname, 0)
-	l.level = Info
+	l.Level = Info
 	l.Log(Fatal, 0, "log fatal %d", 1)
 	checkContentsMatch(t, "log", fname,
 		`^☠ log_test.go:....   log fatal 1\n`)
