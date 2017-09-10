@@ -81,6 +81,10 @@ type Logger struct {
 	// could change in the future.
 	Level Level
 
+	// File name, if this logger is backed by a file. It's used to implement
+	// reopening.
+	fname string
+
 	logTime    bool
 	callerSkip int
 	w          io.WriteCloser
@@ -106,6 +110,7 @@ func NewFile(path string) (*Logger, error) {
 
 	l := New(f)
 	l.logTime = true
+	l.fname = path
 	return l, nil
 }
 
@@ -125,6 +130,29 @@ func NewSyslog(priority syslog.Priority, tag string) (*Logger, error) {
 // Close the writer behind the logger.
 func (l *Logger) Close() {
 	l.w.Close()
+}
+
+// Reopen the file behind the logger, if any. This can be used to implement
+// log rotation.
+//
+// Only works for loggers created via NewFile, otherwise it is a no-op.
+//
+// EXPERIMENTAL, this API could change in the future.
+func (l *Logger) Reopen() error {
+	if l.fname == "" {
+		return nil
+	}
+
+	f, err := os.OpenFile(l.fname, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	l.Lock()
+	l.Close()
+	l.w = f
+	l.Unlock()
+	return nil
 }
 
 // V returns true if the logger's level is >= the one given, false otherwise.

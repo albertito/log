@@ -1,6 +1,7 @@
 package log
 
 import (
+	"io"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -106,4 +107,38 @@ func TestDefaultFile(t *testing.T) {
 	Init()
 
 	testLogger(t, fname, Default)
+}
+
+func TestReopen(t *testing.T) {
+	fname, l := mustNewFile(t)
+	defer l.Close()
+	defer os.Remove(fname)
+	l.logTime = false
+
+	l.Infof("pre rename")
+	checkContentsMatch(t, "r", fname, `^_ log_test.go:....   pre rename\n`)
+
+	os.Rename(fname, fname+"-m")
+	defer os.Remove(fname + "-m")
+	l.Infof("post rename")
+	checkContentsMatch(t, "r", fname+"-m", `pre rename\n.* post rename`)
+
+	if err := l.Reopen(); err != nil {
+		t.Errorf("reopen: %v", err)
+	}
+	l.Infof("post reopen")
+	checkContentsMatch(t, "r", fname, `^_ log_test.go:....   post reopen\n`)
+}
+
+type nopCloser struct {
+	io.Writer
+}
+
+func (nopCloser) Close() error { return nil }
+
+func TestReopenNull(t *testing.T) {
+	l := New(nopCloser{ioutil.Discard})
+	if err := l.Reopen(); err != nil {
+		t.Errorf("reopen: %v", err)
+	}
 }
