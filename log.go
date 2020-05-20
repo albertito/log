@@ -103,6 +103,13 @@ func New(w io.WriteCloser) *Logger {
 
 // NewFile creates a new Logger, which writes logs to the given file.
 func NewFile(path string) (*Logger, error) {
+	// Make path absolute, so Reopen continues to work if the program changes
+	// its working directory later.
+	path, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, err

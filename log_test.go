@@ -128,6 +128,20 @@ func TestReopen(t *testing.T) {
 	}
 	l.Infof("post reopen")
 	checkContentsMatch(t, "r", fname, `^_ log_test.go:....   post reopen\n`)
+
+	// NewFile with an absolute path should resolve it internally to a full
+	// one, so reopen can work.
+	l, err := NewFile("test-relative-file")
+	defer l.Close()
+	defer os.Remove("test-relative-file")
+
+	if err != nil {
+		t.Fatalf("failed to open file for testing: %v", err)
+	}
+	if l.fname[0] != '/' {
+		t.Fatalf("internal fname is not absolute: %q", l.fname)
+	}
+
 }
 
 type nopCloser struct {
