@@ -50,7 +50,7 @@ func testLogger(t *testing.T, fname string, l *Logger) {
 	l.logTime = true
 	l.Infof("message %d", 1)
 	checkContentsMatch(t, "info-with-time", fname,
-		`^\d{8} ..:..:..\.\d{6} _ log_test.go:....   message 1\n`)
+		`^....-..-.. ..:..:..\.\d{6} _ log_test.go:....   message 1\n`)
 
 	os.Truncate(fname, 0)
 	l.logTime = false

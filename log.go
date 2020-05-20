@@ -194,7 +194,7 @@ func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) {
 
 	// Time.
 	if l.logTime {
-		msg = time.Now().Format("20060102 15:04:05.000000 ") + msg
+		msg = time.Now().Format("2006-01-02 15:04:05.000000 ") + msg
 	}
 
 	if !strings.HasSuffix(msg, "\n") {
