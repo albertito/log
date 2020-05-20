@@ -166,9 +166,9 @@ func (l *Logger) V(level Level) bool {
 // should rarely be needed, but it's available to allow the caller to have
 // more complex logic if needed. skip is the number of frames to skip when
 // computing the file name and line number.
-func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) {
+func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) error {
 	if !l.V(level) {
-		return
+		return nil
 	}
 
 	// Message.
@@ -202,8 +202,9 @@ func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) {
 	}
 
 	l.Lock()
-	l.w.Write([]byte(msg))
+	_, err := l.w.Write([]byte(msg))
 	l.Unlock()
+	return err
 }
 
 // Debugf logs information at a Debug level.
@@ -226,7 +227,7 @@ func (l *Logger) Errorf(format string, a ...interface{}) error {
 // Fatalf logs information at a Fatal level, and then exits the program with a
 // non-0 exit code.
 func (l *Logger) Fatalf(format string, a ...interface{}) {
-	l.Log(-2, 1, format, a...)
+	l.Log(Fatal, 1, format, a...)
 	// TODO: Log traceback?
 	os.Exit(1)
 }
