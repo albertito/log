@@ -193,8 +193,21 @@ func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) err
 		return nil
 	}
 
-	// Message.
-	msg := fmt.Sprintf(format, a...)
+	b := strings.Builder{}
+
+	// Time.
+	if l.LogTime {
+		b.WriteString(time.Now().Format("2006-01-02 15:04:05.000000 "))
+	}
+
+	// Level.
+	if l.LogLevel {
+		letter, ok := levelToLetter[level]
+		if !ok {
+			letter = strconv.Itoa(int(level))
+		}
+		b.WriteString(letter + " ")
+	}
 
 	// Caller.
 	if l.LogCaller {
@@ -206,29 +219,17 @@ func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) err
 		if len(fl) > 18 {
 			fl = fl[len(fl)-18:]
 		}
-		msg = fmt.Sprintf("%-18s", fl) + " " + msg
+		fmt.Fprintf(&b, "%-18s ", fl)
 	}
 
-	// Level.
-	if l.LogLevel {
-		letter, ok := levelToLetter[level]
-		if !ok {
-			letter = strconv.Itoa(int(level))
-		}
-		msg = letter + " " + msg
+	// Message.
+	if !strings.HasSuffix(format, "\n") {
+		format += "\n"
 	}
-
-	// Time.
-	if l.LogTime {
-		msg = time.Now().Format("2006-01-02 15:04:05.000000 ") + msg
-	}
-
-	if !strings.HasSuffix(msg, "\n") {
-		msg += "\n"
-	}
+	fmt.Fprintf(&b, format, a...)
 
 	l.Lock()
-	_, err := l.w.Write([]byte(msg))
+	_, err := l.w.Write([]byte(b.String()))
 	l.Unlock()
 	return err
 }
