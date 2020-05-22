@@ -191,3 +191,21 @@ func TestReopenNull(t *testing.T) {
 		t.Errorf("reopen: %v", err)
 	}
 }
+
+// Benchmark a call below the verbosity level.
+func BenchmarkDebugf(b *testing.B) {
+	l := New(nopCloser{ioutil.Discard})
+	defer l.Close()
+	for i := 0; i < b.N; i++ {
+		l.Debugf("test %d", i)
+	}
+}
+
+// Benchmark a normal call.
+func BenchmarkInfof(b *testing.B) {
+	l := New(nopCloser{ioutil.Discard})
+	defer l.Close()
+	for i := 0; i < b.N; i++ {
+		l.Infof("test %d", i)
+	}
+}
