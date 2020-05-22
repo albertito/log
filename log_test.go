@@ -36,7 +36,7 @@ func checkContentsMatch(t *testing.T, name, path, expected string) {
 }
 
 func testLogger(t *testing.T, fname string, l *Logger) {
-	l.logTime = false
+	l.LogTime = false
 	l.Infof("message %d", 1)
 	checkContentsMatch(t, "info-no-time", fname,
 		"^_ log_test.go:....   message 1\n")
@@ -47,13 +47,13 @@ func testLogger(t *testing.T, fname string, l *Logger) {
 		"^_ log_test.go:....   message 1\n")
 
 	os.Truncate(fname, 0)
-	l.logTime = true
+	l.LogTime = true
 	l.Infof("message %d", 1)
 	checkContentsMatch(t, "info-with-time", fname,
 		`^....-..-.. ..:..:..\.\d{6} _ log_test.go:....   message 1\n`)
 
 	os.Truncate(fname, 0)
-	l.logTime = false
+	l.LogTime = false
 	l.Errorf("error %d", 1)
 	checkContentsMatch(t, "error", fname, `^E log_test.go:....   error 1\n`)
 
@@ -62,7 +62,7 @@ func testLogger(t *testing.T, fname string, l *Logger) {
 	}
 
 	os.Truncate(fname, 0)
-	l.logTime = false
+	l.LogTime = false
 	l.Debugf("debug %d", 1)
 	checkContentsMatch(t, "debug-no-log", fname, `^$`)
 
@@ -87,6 +87,41 @@ func testLogger(t *testing.T, fname string, l *Logger) {
 	l.Log(Fatal, 0, "log fatal %d", 1)
 	checkContentsMatch(t, "log", fname,
 		`^☠ log_test.go:....   log fatal 1\n`)
+
+	// Test some combinations of options.
+	cases := []struct {
+		name      string
+		logTime   bool
+		logLevel  bool
+		logCaller bool
+		expected  string
+	}{
+		{
+			"show everything",
+			true, true, true,
+			`^....-..-.. ..:..:..\.\d{6} _ log_test.go:....   message 1\n`,
+		}, {
+			"caller+level",
+			false, true, true,
+			`^_ log_test.go:....   message 1\n`,
+		}, {
+			"time",
+			true, false, false,
+			`^....-..-.. ..:..:..\.\d{6} message 1\n`,
+		}, {
+			"none",
+			false, false, false,
+			`message 1\n`,
+		},
+	}
+	for _, c := range cases {
+		os.Truncate(fname, 0)
+		l.LogTime = c.logTime
+		l.LogLevel = c.logLevel
+		l.LogCaller = c.logCaller
+		l.Infof("message %d", 1)
+		checkContentsMatch(t, c.name, fname, c.expected)
+	}
 }
 
 func TestBasic(t *testing.T) {
@@ -113,7 +148,7 @@ func TestReopen(t *testing.T) {
 	fname, l := mustNewFile(t)
 	defer l.Close()
 	defer os.Remove(fname)
-	l.logTime = false
+	l.LogTime = false
 
 	l.Infof("pre rename")
 	checkContentsMatch(t, "r", fname, `^_ log_test.go:....   pre rename\n`)

@@ -81,11 +81,25 @@ type Logger struct {
 	// could change in the future.
 	Level Level
 
+	// Include timestamp in the log message.
+	// The use of this field should be considered EXPERIMENTAL, the API for it
+	// could change in the future.
+	LogTime bool
+
+	// Include the log level in the log message.
+	// The use of this field should be considered EXPERIMENTAL, the API for it
+	// could change in the future.
+	LogLevel bool
+
+	// Include the caller in the log message.
+	// The use of this field should be considered EXPERIMENTAL, the API for it
+	// could change in the future.
+	LogCaller bool
+
 	// File name, if this logger is backed by a file. It's used to implement
 	// reopening.
 	fname string
 
-	logTime    bool
 	callerSkip int
 	w          io.WriteCloser
 	sync.Mutex
@@ -97,7 +111,9 @@ func New(w io.WriteCloser) *Logger {
 		w:          w,
 		callerSkip: 0,
 		Level:      Info,
-		logTime:    true,
+		LogTime:    true,
+		LogLevel:   true,
+		LogCaller:  true,
 	}
 }
 
@@ -116,7 +132,6 @@ func NewFile(path string) (*Logger, error) {
 	}
 
 	l := New(f)
-	l.logTime = true
 	l.fname = path
 	return l, nil
 }
@@ -130,7 +145,7 @@ func NewSyslog(priority syslog.Priority, tag string) (*Logger, error) {
 	}
 
 	l := New(w)
-	l.logTime = false
+	l.LogTime = false
 	return l, nil
 }
 
@@ -182,25 +197,29 @@ func (l *Logger) Log(level Level, skip int, format string, a ...interface{}) err
 	msg := fmt.Sprintf(format, a...)
 
 	// Caller.
-	_, file, line, ok := runtime.Caller(1 + l.callerSkip + skip)
-	if !ok {
-		file = "unknown"
+	if l.LogCaller {
+		_, file, line, ok := runtime.Caller(1 + l.callerSkip + skip)
+		if !ok {
+			file = "unknown"
+		}
+		fl := fmt.Sprintf("%s:%-4d", filepath.Base(file), line)
+		if len(fl) > 18 {
+			fl = fl[len(fl)-18:]
+		}
+		msg = fmt.Sprintf("%-18s", fl) + " " + msg
 	}
-	fl := fmt.Sprintf("%s:%-4d", filepath.Base(file), line)
-	if len(fl) > 18 {
-		fl = fl[len(fl)-18:]
-	}
-	msg = fmt.Sprintf("%-18s", fl) + " " + msg
 
 	// Level.
-	letter, ok := levelToLetter[level]
-	if !ok {
-		letter = strconv.Itoa(int(level))
+	if l.LogLevel {
+		letter, ok := levelToLetter[level]
+		if !ok {
+			letter = strconv.Itoa(int(level))
+		}
+		msg = letter + " " + msg
 	}
-	msg = letter + " " + msg
 
 	// Time.
-	if l.logTime {
+	if l.LogTime {
 		msg = time.Now().Format("2006-01-02 15:04:05.000000 ") + msg
 	}
 
@@ -241,10 +260,14 @@ func (l *Logger) Fatalf(format string, a ...interface{}) {
 
 // The default logger, used by the top-level functions below.
 var Default = &Logger{
-	w:          os.Stderr,
+	w: os.Stderr,
+
+	Level: Info,
+
 	callerSkip: 1,
-	Level:      Info,
-	logTime:    false,
+	LogCaller:  true,
+	LogLevel:   true,
+	LogTime:    false,
 }
 
 // Initialize the default logger, based on the command-line flags.
@@ -271,7 +294,7 @@ func Init() {
 
 	Default.callerSkip = 1
 	Default.Level = Level(*vLevel)
-	Default.logTime = *logTime
+	Default.LogTime = *logTime
 }
 
 // V is a convenient wrapper to Default.V.
