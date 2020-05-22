@@ -1,16 +1,16 @@
 # Configuration for https://travis-ci.org/
 
 language: go
-dist: trusty
-sudo: false
+dist: bionic
 
 go_import_path: blitiri.com.ar/go/log
 
 go:
-    - 1.7
+    - 1.10.x
     - stable
     - master
 
 script:
     - go test ./...
     - go test -race ./...
+    - go test -bench ./...
