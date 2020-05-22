@@ -187,6 +187,7 @@ func (nopCloser) Close() error { return nil }
 
 func TestReopenNull(t *testing.T) {
 	l := New(nopCloser{ioutil.Discard})
+	defer l.Close()
 	if err := l.Reopen(); err != nil {
 		t.Errorf("reopen: %v", err)
 	}
