@@ -29,10 +29,12 @@ if log.V(3) {  // only entered if -v was >= 3.
 
 ## Status
 
-The API should be considered stable.
+The API should be considered generally stable, and no backwards-incompatible
+changes are expected.
 
-Branch v1 will only have backwards-compatible changes made to it.
-There are no plans for v2 at the moment.
+Some specific symbols are experimental, and are marked as such in their
+documentation.  Those might see backwards-incompatible changes, including
+removing them entirely.
 
 
 ## Contact
