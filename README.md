@@ -2,6 +2,8 @@
 # blitiri.com.ar/go/log
 
 [![GoDoc](https://godoc.org/blitiri.com.ar/go/log?status.svg)](https://godoc.org/blitiri.com.ar/go/log)
+[![Build Status](https://travis-ci.org/albertito/log.svg?branch=master)](https://travis-ci.org/albertito/log)
+[![Go Report Card](https://goreportcard.com/badge/github.com/albertito/log)](https://goreportcard.com/report/github.com/albertito/log)
 
 [log](https://godoc.org/blitiri.com.ar/go/log) is a Go package implementing a
 simple logger.
