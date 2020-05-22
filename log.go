@@ -53,7 +53,7 @@ var (
 		"also log to stderr, in addition to the file")
 )
 
-// Type of a logging level, to prevent confusion.
+// Level is the type of the logging level constants, to prevent confusion.
 type Level int
 
 // Standard logging levels.
@@ -259,7 +259,7 @@ func (l *Logger) Fatalf(format string, a ...interface{}) {
 	os.Exit(1)
 }
 
-// The default logger, used by the top-level functions below.
+// Default logger, used by the top-level functions below.
 var Default = &Logger{
 	w: os.Stderr,
 
@@ -271,7 +271,7 @@ var Default = &Logger{
 	LogTime:    false,
 }
 
-// Initialize the default logger, based on the command-line flags.
+// Init the default logger, based on the command-line flags.
 func Init() {
 	flag.Parse()
 	var err error
